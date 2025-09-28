@@ -21,7 +21,7 @@ type OutputConfig struct {
 type SFlowConfig struct {
 	AgentIP string `yaml:"agent_ip"`
 	// We don't grab the rate from XDP itself so it needs to be from config (for multipliers)
-	SampleRate uint32 `yaml:"sample_rate"`
+	SampleRate uint64 `yaml:"sample_rate"`
 	// Incase the user wants to sep out as needed (if collector primarily)
 	Version uint32 `yaml:"version"`
 }
