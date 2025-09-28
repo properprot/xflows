@@ -77,13 +77,16 @@ func (s *SFlowCollectorOutput) Send(sample *sflow.SFlowSample) error {
 func (s *SFlowCollectorOutput) buildSFlowV5(sample *sflow.SFlowSample) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
-	binary.Write(buf, binary.BigEndian, uint32(5)) // Vers
+	// Datagram header
+	binary.Write(buf, binary.BigEndian, uint32(5)) // version
+	binary.Write(buf, binary.BigEndian, uint32(1)) // agent addr type = IPv4
 	binary.Write(buf, binary.BigEndian, s.ipToUint32(s.agentIP))
 	binary.Write(buf, binary.BigEndian, s.subAgentID)
 	binary.Write(buf, binary.BigEndian, atomic.AddUint32(&s.sequenceNumber, 1))
 	binary.Write(buf, binary.BigEndian, uint32(time.Since(s.bootTime).Milliseconds()))
-	binary.Write(buf, binary.BigEndian, uint32(1)) // SampleCount
+	binary.Write(buf, binary.BigEndian, uint32(1))
 
+	// Add one flow sample
 	if err := s.writeSampleRecord(buf, sample); err != nil {
 		return nil, err
 	}
@@ -94,28 +97,33 @@ func (s *SFlowCollectorOutput) buildSFlowV5(sample *sflow.SFlowSample) ([]byte, 
 func (s *SFlowCollectorOutput) writeSampleRecord(buf *bytes.Buffer, sample *sflow.SFlowSample) error {
 	sampleBuf := &bytes.Buffer{}
 
-	// Flow Sample HDR
+	binary.Write(sampleBuf, binary.BigEndian, uint32(s.sequenceNumber))
+	binary.Write(sampleBuf, binary.BigEndian, uint32(0<<24|1))
 	binary.Write(sampleBuf, binary.BigEndian, uint32(sample.SampleRate))
-	binary.Write(sampleBuf, binary.BigEndian, uint32(sample.PacketCount)) // Sample pool (we don't read this)
-	binary.Write(sampleBuf, binary.BigEndian, uint32(0))                  // We don't read drops
-	binary.Write(sampleBuf, binary.BigEndian, uint32(0))                  // or input interface
-	binary.Write(sampleBuf, binary.BigEndian, uint32(0))                  // or output interface
-	binary.Write(sampleBuf, binary.BigEndian, uint32(1))                  // SampleCount
+	binary.Write(sampleBuf, binary.BigEndian, uint32(sample.PacketCount)) // sample pool
+	binary.Write(sampleBuf, binary.BigEndian, uint32(0))
+	binary.Write(sampleBuf, binary.BigEndian, uint32(1)) // we dont know these ifIndexs
+	binary.Write(sampleBuf, binary.BigEndian, uint32(1))
+	binary.Write(sampleBuf, binary.BigEndian, uint32(1)) // number of records
 
-	flowRecordBuf := &bytes.Buffer{}
-	binary.Write(flowRecordBuf, binary.BigEndian, uint32(1)) // Format, raw packet
+	flowRec := &bytes.Buffer{}
+	binary.Write(flowRec, binary.BigEndian, uint32(1)) // type = HDR (format=1, enterprise=0)
 
-	flowDataBuf := &bytes.Buffer{}
-	binary.Write(flowDataBuf, binary.BigEndian, uint32(1)) // ETH Proto
-	binary.Write(flowDataBuf, binary.BigEndian, uint32(sample.PacketSize))
-	binary.Write(flowDataBuf, binary.BigEndian, uint32(sample.PacketSize)-uint32(len(sample.Raw))) // Payload removed (we have full header)
-	binary.Write(flowDataBuf, binary.BigEndian, uint32(len(sample.Raw)))
-	flowDataBuf.Write(sample.Raw)
+	flowData := &bytes.Buffer{}
+	binary.Write(flowData, binary.BigEndian, uint32(1)) // headerProtocol = 1 (Ethernet)
+	binary.Write(flowData, binary.BigEndian, uint32(sample.PacketSize))
+	binary.Write(flowData, binary.BigEndian, uint32(0)) // stripped = 0
+	binary.Write(flowData, binary.BigEndian, uint32(len(sample.Raw)))
+	flowData.Write(sample.Raw)
 
-	binary.Write(flowRecordBuf, binary.BigEndian, uint32(flowDataBuf.Len()))
-	flowRecordBuf.Write(flowDataBuf.Bytes())
+	for flowData.Len()%4 != 0 {
+		flowData.WriteByte(0)
+	}
 
-	sampleBuf.Write(flowRecordBuf.Bytes())
+	binary.Write(flowRec, binary.BigEndian, uint32(flowData.Len()))
+	flowRec.Write(flowData.Bytes())
+
+	sampleBuf.Write(flowRec.Bytes())
 
 	binary.Write(buf, binary.BigEndian, uint32(1))
 	binary.Write(buf, binary.BigEndian, uint32(sampleBuf.Len()))
