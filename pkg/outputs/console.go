@@ -13,7 +13,7 @@ type ConsoleOutput struct {
 	logger *logrus.Logger
 }
 
-func NewConsoleOutput(config map[string]interface{}) *ConsoleOutput {
+func NewConsoleOutput(config map[string]interface{}, level logrus.Level) (*ConsoleOutput, error) {
 	format := "json"
 	if f, ok := config["format"].(string); ok {
 		format = f
@@ -23,7 +23,8 @@ func NewConsoleOutput(config map[string]interface{}) *ConsoleOutput {
 		format = "json"
 	}
 
-	return &ConsoleOutput{format: format, logger: log}
+	log.SetLevel(level)
+	return &ConsoleOutput{format: format, logger: log}, nil
 }
 
 func (c *ConsoleOutput) Send(sample *sflow.SFlowSample) error {

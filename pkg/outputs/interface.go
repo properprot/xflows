@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var log = &logrus.Logger{}
+var log = logrus.New()
 
 type Output interface {
 	Send(sample *sflow.SFlowSample) error

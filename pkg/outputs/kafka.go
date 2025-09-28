@@ -15,7 +15,7 @@ type KafkaOutput struct {
 	logger *logrus.Logger
 }
 
-func NewKafkaOutput(config map[string]interface{}) (*KafkaOutput, error) {
+func NewKafkaOutput(config map[string]interface{}, level logrus.Level) (*KafkaOutput, error) {
 	brokers, ok := config["brokers"].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("kafka brokers not specified")
@@ -37,6 +37,7 @@ func NewKafkaOutput(config map[string]interface{}) (*KafkaOutput, error) {
 		Balancer: &kafka.LeastBytes{},
 	}
 
+	log.SetLevel(level)
 	return &KafkaOutput{writer: writer, logger: log}, nil
 }
 
