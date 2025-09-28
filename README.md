@@ -24,6 +24,10 @@
         </a>
 </div>
 
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/9c506123-0741-481e-9373-612a93a0a6d1" alt="SFlows in Console" />
+</div>
+
 ## Table of Contents
 - [Features](#features)
 - [Example](#example)
