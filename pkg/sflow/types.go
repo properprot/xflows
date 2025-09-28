@@ -14,6 +14,7 @@ type SFlowSample struct {
 	PacketCount uint64
 	ByteCount   uint64
 	PacketSize  uint32
+	Raw         []byte
 
 	// L3
 	TOS      uint8

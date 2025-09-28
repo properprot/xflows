@@ -77,6 +77,7 @@ func (p *Parser) ParseEBPFData(data []byte) (*SFlowSample, error) {
 		PacketCount: p.sampleRate,
 		ByteCount:   uint64(_totalLen) * p.sampleRate,
 		PacketSize:  uint32(_totalLen),
+		Raw:         data[:_cutoff],
 
 		TOS:      uint8(_ipPacket[8]),
 		SrcIP:    net.IP(_ipPacket[12:16]),
