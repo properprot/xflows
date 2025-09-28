@@ -174,7 +174,7 @@ func (e *Exporter) Config() *config.Config {
 	return e.config
 }
 
-// If a user wants to add csutom logging in
+// If a user wants to add custom logging in
 func (e *Exporter) Logger() *logrus.Logger {
 	return e.logger
 }
