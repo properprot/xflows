@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var log = &logrus.Logger{}
+var log = logrus.New()
 
 type MapReader struct {
 	ebpfMap *ebpf.Map
@@ -33,7 +33,7 @@ func (mr *MapReader) Start(ctx context.Context, dataChan chan<- []byte) {
 		return
 	}
 	defer ringbuf_reader.Close()
-	ringbuf_reader.SetDeadline(time.Now().Add(30 * time.Second))
+	ringbuf_reader.SetDeadline(time.Now().Add(10 * time.Second))
 
 	for {
 		select {
@@ -49,7 +49,7 @@ func (mr *MapReader) Start(ctx context.Context, dataChan chan<- []byte) {
 							return
 						}
 
-						ringbuf_reader.SetDeadline(time.Now().Add(15 * time.Second))
+						ringbuf_reader.SetDeadline(time.Now().Add(5 * time.Second))
 						break
 					}
 
