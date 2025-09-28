@@ -35,6 +35,8 @@ func main() {
 		logger.WithError(err).Fatal("Failed to load eBPF collection")
 	}
 
+	exporter.ListenFlows(program.SFlows)
+
 	ifIndex, err := net.InterfaceByName("eth0")
 	if err != nil {
 		logger.WithError(err).Fatal("Failed to get interface")

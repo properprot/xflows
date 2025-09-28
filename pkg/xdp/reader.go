@@ -38,6 +38,7 @@ func (mr *MapReader) Start(ctx context.Context, dataChan chan<- []byte) {
 	for {
 		select {
 		case <-ctx.Done():
+			mr.logger.Info("Map reader shutting down")
 			return
 		default:
 			for {
