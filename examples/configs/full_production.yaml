@@ -1,0 +1,62 @@
+sflow:
+  agent_ip: "10.0.1.100" # How you want this SFlow Agent to be named
+  sample_rate: 1000 # 1 in N packets sampled
+  version: 5 # sFlow version (always 5)
+
+processing:
+  channel_buffer: 50000 # Feel free to raise and decrease this as you see fit, 50k should be a sweet spot
+  concurrent_sends: true # Send to outputs concurrently for performance (be cautious if in high volume environments)
+
+outputs:
+  - type: "console"
+    config:
+      format: "json" # Options: "json" or "text"
+      
+  - type: "kafka"
+    config:
+      brokers: 
+        - "kafka-1.thepoly.eu:9092"
+        - "kafka-2.thepoly.eu:9092"
+      topic: "network-flows"
+      
+  - type: "clickhouse"
+    config:
+      dsn: "clickhouse.thepoly.eu.com:9000"
+      database: "default"
+      username: "xflows"
+      password: "Password1"
+      table: "xflows"
+      batch_size: 5000
+      flush_interval: "10s" # Maximum time between flushes
+      tls: false
+      
+      # If you create your own table, it can be rewritten using these options.
+      #
+      # The table it creates is perfect for high throughput environments but
+      # may not be the best compressed.
+      columns:
+        timestamp: "event_time"
+        agent_ip: "agent_address"
+        sample_rate: "s_rate"
+        payload: "raw_data"
+        packet_count: "packets"
+        byte_count: "bytes"
+        packet_size: "size"
+        tos: "tos"
+        src_ip: "source_ip"
+        dst_ip: "dest_ip"
+        protocol: "protocol"
+        src_port: "source_port"
+        dst_port: "dest_port"
+      
+      # You can alternatively use your own SQL commands, however, it must
+      # contain the fields as seen above, in the same order
+      # custom_sql: "INSERT INTO flows (time, src, dst, bytes) VALUES (?, ?, ?, ?)"
+  
+  - type: "sflow_collector"
+    config:
+      collector_address: "collector.thepoly.eu:6343"
+      agent_ip: "10.0.1.100" # Should match sflow.agent_ip above
+      sub_agent_id: 1 # Unique identifier for this agent
+
+log_level: "info" # debug, info, warning, error

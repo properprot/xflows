@@ -1,0 +1,11 @@
+sflow:
+  agent_ip: "10.0.1.100"
+  sample_rate: 1000
+  version: 5
+
+outputs:
+  - type: "console"
+    config:
+      format: "text"
+
+log_level: "info"

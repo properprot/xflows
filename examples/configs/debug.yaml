@@ -1,0 +1,15 @@
+sflow:
+  agent_ip: "10.0.1.100"
+  sample_rate: 100
+  version: 5
+
+processing:
+  channel_buffer: 1000
+  concurrent_sends: false
+
+outputs:
+  - type: "console"
+    config:
+      format: "text"
+
+log_level: "debug"

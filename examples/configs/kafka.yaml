@@ -1,0 +1,16 @@
+sflow:
+  agent_ip: "10.0.1.100"
+  sample_rate: 1000
+  version: 5
+
+processing:
+  channel_buffer: 25000
+  concurrent_sends: true
+
+outputs:
+  - type: "kafka"
+    config:
+      brokers: ["localhost:9092"]
+      topic: "sflow-data"
+
+log_level: "info"
